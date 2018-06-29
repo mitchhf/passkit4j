@@ -1,6 +1,8 @@
 package com.ryantenney.passkit4j.model;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -8,16 +10,12 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true, fluent = true)
 @RequiredArgsConstructor
-public class Barcode {
-
-    @NonNull
-    private BarcodeFormat format;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class NFC {
 
     @NonNull
     private String message;
 
-    private String messageEncoding = "iso-8859-1";
-
-    private String altText = null;
+    private String encryptionPublicKey;
 
 }
