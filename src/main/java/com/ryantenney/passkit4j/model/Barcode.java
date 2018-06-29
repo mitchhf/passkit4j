@@ -6,16 +6,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
-@Accessors(chain=true, fluent=true)
+@Accessors(chain = true, fluent = true)
 @RequiredArgsConstructor
 public class Barcode {
 
-	@NonNull private BarcodeFormat format;
+    @NonNull
+    private BarcodeFormat format;
 
-	@NonNull private String message;
+    @NonNull
+    private String message;
 
-	private String messageEncoding = "iso-8859-1";
+    private String messageEncoding = "iso-8859-1";
 
-	private String altText = null;
+    private String altText = null;
 
 }

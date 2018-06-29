@@ -2,11 +2,11 @@ package com.ryantenney.passkit4j.model;
 
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 public class Coupon extends PassInformation {
 
-	public Coupon() {
-		super("coupon");
-	}
+    public Coupon() {
+        super("coupon");
+    }
 
 }

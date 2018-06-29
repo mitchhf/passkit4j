@@ -11,16 +11,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Data
-@Accessors(chain=true, fluent=true)
+@Accessors(chain = true, fluent = true)
 @RequiredArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Beacon {
 
-	@NonNull private String proximityUUID;
+    @NonNull
+    private String proximityUUID;
 
-	@JsonInclude(Include.NON_DEFAULT) private long major = -1;
-	@JsonInclude(Include.NON_DEFAULT) private long minor = -1;
+    @JsonInclude(Include.NON_DEFAULT)
+    private long major = -1;
+    @JsonInclude(Include.NON_DEFAULT)
+    private long minor = -1;
 
-	private String relevantText;
+    private String relevantText;
 
 }

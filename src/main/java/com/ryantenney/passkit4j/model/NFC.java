@@ -8,13 +8,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
-@Accessors(chain=true, fluent=true)
+@Accessors(chain = true, fluent = true)
 @RequiredArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NFC {
 
-	@NonNull private String message;
+    @NonNull
+    private String message;
 
-	private String encryptionPublicKey;
+    private String encryptionPublicKey;
 
 }

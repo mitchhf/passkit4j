@@ -5,6 +5,6 @@ import java.io.InputStream;
 
 public interface InputStreamSupplier {
 
-	public InputStream getInputStream() throws IOException;
+    public InputStream getInputStream() throws IOException;
 
 }

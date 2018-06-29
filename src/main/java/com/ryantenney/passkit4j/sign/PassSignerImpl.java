@@ -25,139 +25,146 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 @RequiredArgsConstructor
 public class PassSignerImpl implements PassSigner {
 
-	@NonNull private final CMSSignedDataGenerator generator;
+    @NonNull
+    private final CMSSignedDataGenerator generator;
 
-	public static Builder builder() {
-		return new Builder();
-	}
+    public PassSignerImpl(X509Certificate signingCertificate, PrivateKey privateKey, X509Certificate intermediateCertificate) throws PassSigningException {
+        this.generator = createGenerator(signingCertificate, privateKey, intermediateCertificate);
+    }
 
-	@Getter
-	@Setter
-	@Accessors(chain=true, fluent=true)
-	@NoArgsConstructor
-	public static class Builder {
+    public static Builder builder() {
+        return new Builder();
+    }
 
-		@NonNull private X509Certificate signingCertificate;
-		@NonNull private PrivateKey privateKey;
-		@NonNull private X509Certificate intermediateCertificate;
+    public CMSSignedDataGenerator createGenerator(X509Certificate signingCertificate, PrivateKey privateKey, X509Certificate intermediateCertificate) throws PassSigningException {
+        ensureBCProvider();
 
-		private KeyStore keyStore;
-		private String signingCertificateAlias;
-		private String privateKeyAlias;
-		private String password;
+        try {
 
-		public Builder keystore(InputStream inputStream, String password) throws PassSigningException {
-			return this.keystore(inputStream, null, password);
-		}
+            CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
+            generator.addSignerInfoGenerator(new JcaSimpleSignerInfoGeneratorBuilder()
+                    .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                    .build("SHA1withRSA", privateKey, signingCertificate));
+            generator.addCertificates(new JcaCertStore(Arrays.asList(intermediateCertificate, signingCertificate)));
 
-		/**
-		 * Deprecated in favor of calling {@code keystore(InputStream, String)}
-		 * followed by setting the alias with {@code alias(String)}
-		 * @param keyStore
-		 * @param alias
-		 * @param password
-		 * @return
-		 */
-		@Deprecated
-		public Builder keystore(InputStream inputStream, String alias, String password) throws PassSigningException {
-			KeyStore keyStore = loadPKCS12File(inputStream, password);
-			return this.keystore(keyStore, alias, password);
-		}
+            return generator;
 
-		public Builder keystore(KeyStore keyStore, String password) {
-			return this.keystore(keyStore, null, password);
-		}
+        } catch (Exception ex) {
+            throw propagateAsPassSigningException("Error creating PassSignerImpl instance", ex);
+        }
+    }
 
-		/**
-		 * Deprecated in favor of calling {@code keystore(KeyStore, String)}
-		 * followed by setting the alias with {@code alias(String)}
-		 * @param keyStore
-		 * @param alias
-		 * @param password
-		 * @return
-		 */
-		@Deprecated
-		public Builder keystore(KeyStore keyStore, String alias, String password) {
-			this.keyStore = keyStore;
-			this.signingCertificateAlias = alias;
-			this.privateKeyAlias = alias;
-			this.password = password;
-			return this;
-		}
+    public byte[] generateSignature(byte[] data) throws PassSigningException {
+        ensureBCProvider();
 
-		/**
-		 * Sets both the signing certificate and private key aliases
-		 * @param alias
-		 * @return this
-		 */
-		public Builder alias(String alias) {
-			this.signingCertificateAlias = alias;
-			this.privateKeyAlias = alias;
-			return this;
-		}
+        try {
 
-		public Builder intermediateCertificate(InputStream inputStream) throws PassSigningException {
-			this.intermediateCertificate = loadDERCertificate(inputStream);
-			return this;
-		}
+            CMSProcessableByteArray processableData = new CMSProcessableByteArray(data);
+            CMSSignedData signedData = generator.generate(processableData);
+            return signedData.getEncoded();
 
-		public Builder intermediateCertificate(X509Certificate intermediateCertificate) {
-			this.intermediateCertificate = intermediateCertificate;
-			return this;
-		}
+        } catch (Exception ex) {
+            throw propagateAsPassSigningException("Error generating signautre", ex);
+        }
+    }
 
-		public PassSigner build() throws PassSigningException {
-			if (signingCertificate == null) {
-				signingCertificate = getCertificate(keyStore, signingCertificateAlias);
-			}
+    @Getter
+    @Setter
+    @Accessors(chain = true, fluent = true)
+    @NoArgsConstructor
+    public static class Builder {
 
-			if (privateKey == null) {
-				privateKey = getPrivateKey(keyStore, privateKeyAlias, password);
-			}
+        @NonNull
+        private X509Certificate signingCertificate;
+        @NonNull
+        private PrivateKey privateKey;
+        @NonNull
+        private X509Certificate intermediateCertificate;
 
-			if (intermediateCertificate == null) {
-				throw new PassSigningException("Must provide an intermediate certificate");
-			}
+        private KeyStore keyStore;
+        private String signingCertificateAlias;
+        private String privateKeyAlias;
+        private String password;
 
-			return new PassSignerImpl(signingCertificate, privateKey, intermediateCertificate);
-		}
+        public Builder keystore(InputStream inputStream, String password) throws PassSigningException {
+            return this.keystore(inputStream, null, password);
+        }
 
-	}
+        /**
+         * Deprecated in favor of calling {@code keystore(InputStream, String)}
+         * followed by setting the alias with {@code alias(String)}
+         *
+         * @param keyStore
+         * @param alias
+         * @param password
+         * @return
+         */
+        @Deprecated
+        public Builder keystore(InputStream inputStream, String alias, String password) throws PassSigningException {
+            KeyStore keyStore = loadPKCS12File(inputStream, password);
+            return this.keystore(keyStore, alias, password);
+        }
 
-	public PassSignerImpl(X509Certificate signingCertificate, PrivateKey privateKey, X509Certificate intermediateCertificate) throws PassSigningException {
-		this.generator = createGenerator(signingCertificate, privateKey, intermediateCertificate);
-	}
+        public Builder keystore(KeyStore keyStore, String password) {
+            return this.keystore(keyStore, null, password);
+        }
 
-	public CMSSignedDataGenerator createGenerator(X509Certificate signingCertificate, PrivateKey privateKey, X509Certificate intermediateCertificate) throws PassSigningException {
-		ensureBCProvider();
+        /**
+         * Deprecated in favor of calling {@code keystore(KeyStore, String)}
+         * followed by setting the alias with {@code alias(String)}
+         *
+         * @param keyStore
+         * @param alias
+         * @param password
+         * @return
+         */
+        @Deprecated
+        public Builder keystore(KeyStore keyStore, String alias, String password) {
+            this.keyStore = keyStore;
+            this.signingCertificateAlias = alias;
+            this.privateKeyAlias = alias;
+            this.password = password;
+            return this;
+        }
 
-		try {
+        /**
+         * Sets both the signing certificate and private key aliases
+         *
+         * @param alias
+         * @return this
+         */
+        public Builder alias(String alias) {
+            this.signingCertificateAlias = alias;
+            this.privateKeyAlias = alias;
+            return this;
+        }
 
-			CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
-			generator.addSignerInfoGenerator(new JcaSimpleSignerInfoGeneratorBuilder()
-				.setProvider(BouncyCastleProvider.PROVIDER_NAME)
-				.build("SHA1withRSA", privateKey, signingCertificate));
-			generator.addCertificates(new JcaCertStore(Arrays.asList(intermediateCertificate, signingCertificate)));
+        public Builder intermediateCertificate(InputStream inputStream) throws PassSigningException {
+            this.intermediateCertificate = loadDERCertificate(inputStream);
+            return this;
+        }
 
-			return generator;
+        public Builder intermediateCertificate(X509Certificate intermediateCertificate) {
+            this.intermediateCertificate = intermediateCertificate;
+            return this;
+        }
 
-		} catch (Exception ex) {
-			throw propagateAsPassSigningException("Error creating PassSignerImpl instance", ex);
-		}
-	}
+        public PassSigner build() throws PassSigningException {
+            if (signingCertificate == null) {
+                signingCertificate = getCertificate(keyStore, signingCertificateAlias);
+            }
 
-	public byte[] generateSignature(byte[] data) throws PassSigningException {
-		ensureBCProvider();
+            if (privateKey == null) {
+                privateKey = getPrivateKey(keyStore, privateKeyAlias, password);
+            }
 
-		try {
+            if (intermediateCertificate == null) {
+                throw new PassSigningException("Must provide an intermediate certificate");
+            }
 
-			CMSProcessableByteArray processableData = new CMSProcessableByteArray(data);
-			CMSSignedData signedData = generator.generate(processableData);
-			return signedData.getEncoded();
+            return new PassSignerImpl(signingCertificate, privateKey, intermediateCertificate);
+        }
 
-		} catch (Exception ex) {
-			throw propagateAsPassSigningException("Error generating signautre", ex);
-		}
-	}
+    }
 
 }
