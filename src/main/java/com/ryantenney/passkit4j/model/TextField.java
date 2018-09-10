@@ -14,18 +14,27 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 public class TextField implements Field<String> {
 
-	@NonNull private String key;
-	private String label;
-	private String changeMessage;
-	private TextAlignment textAlignment;
-	private Set<DataDetectorType> dataDetectorTypes;
-	private String attributedValue;
+    @NonNull private String key;
+    private String label;
+    private String changeMessage;
+    private TextAlignment textAlignment;
+    private Set<DataDetectorType> dataDetectorTypes;
+    private String attributedValue;
+        // Added so support "Additional Row Support".  See slide with
+	// same title in:
+	// https://devstreaming-cdn.apple.com/videos/wwdc/2018/720gofzcqcp431kcasf/720/720_wallet_and_apple_pay_creating_great_customer_experiences.pdf?dl=1
+    private Integer row;
 
-	@NonNull private String value;
+    @NonNull private String value;
 
-	public TextField(String key, String label, String value) {
-		this(key, value);
-		this.label = label;
-	}
+    public TextField(String key, String label, String value) {
+	this(key, value);
+	this.label = label;
+    }
+    public TextField(String key, String label, String value, Integer row) {
+	this(key, value);
+	this.label = label;
+	this.row = row;
+    }
 
 }
