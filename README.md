@@ -34,7 +34,7 @@ Current stable version is 2.0.1, which supports iOS 9 passes.
 <dependency>
 	<groupId>com.ryantenney.passkit4j</groupId>
 	<artifactId>passkit4j</artifactId>
-	<version>2.0.1</version>
+	<version>2.0.1</version> <!-- this doesn't include "Additional Row Support" or sharingProhibited support -->
 </dependency>
 ```
 
